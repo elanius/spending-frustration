@@ -1,0 +1,39 @@
+# Exclude unnecessary files from Docker build context
+
+# Python environments & caches
+.venv
+venv
+__pycache__
+*.py[cod]
+.mypy_cache
+.pytest_cache
+
+# Node modules
+frontend/node_modules
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Local tooling / editors
+.vscode
+
+# Tests (optional; comment out if you need them inside image)
+backend/tests
+
+# Docs & misc
+docs
+README.md
+
+# Env files (provide via compose)
+.env
+backend/.env
+
+# Coverage & reports
+coverage.xml
+htmlcov
+reports
+
+# Logs
+*.log
