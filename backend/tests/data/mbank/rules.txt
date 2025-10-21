@@ -1,0 +1,92 @@
+# Auto-generated general rules derived from sample mBank statement transactions.
+# Format: <expression> -> <result>
+# Fields: merchant|amount with operators ==, contains, >, >=, <, <=
+# Result tokens: one optional @category and any number of #tags
+# Ordered (higher priority first) from specific patterns to broader groups.
+
+# --- Cash & Banking ---
+merchant contains "VÝBER V BANKOMATE" -> @cash #atm
+
+# --- Income ---
+merchant contains "ATT GNS" -> @income #salary
+merchant contains Najom -> @income #rent
+
+# --- Housing / Utilities / Mortgage ---
+merchant contains "HYPOTEKA - PRIMABANKA" -> @mortgage #housing
+merchant contains ELEKTRINA -> @utilities #electricity
+merchant contains "PLYN, MAGURSKA" -> @utilities #gas
+merchant contains "PLYN, BZENOV" -> @utilities #gas
+merchant contains "INTERNET - ALEXOVIC" -> @utilities #internet
+merchant contains POISTENIE -> @insurance #insurance
+merchant contains POISŤOVŇA -> @insurance #insurance
+merchant contains GENERALI -> @insurance #insurance
+merchant contains UNION -> @insurance #insurance
+
+# --- Donations / Charity ---
+merchant contains "EVANJELIZAČNÉ STREDISKO" -> @donation #charity
+merchant contains "S. ALEXOVIC - DAR" -> @donation #charity
+merchant contains KOMPAS -> @donation #charity
+merchant contains "BJB EKKLESIA" -> @donation #charity
+merchant contains "DM - ZUZKA" -> @donation #charity
+merchant contains "DENISA A DANIEL" -> @donation #charity
+merchant contains "MIRIAM SIMOCKOVA" -> @donation #charity
+
+# --- Groceries & Household Food ---
+merchant contains LIDL -> @groceries #food
+merchant contains KAUFLAND -> @groceries #food
+merchant contains COOP -> @groceries #food
+merchant contains SUPERMARKET -> @groceries #food
+merchant contains FRESH -> @groceries #food
+merchant contains "MILK-AGRO" -> @groceries #food
+merchant contains POTRAVINY -> @groceries #food
+
+# --- Fuel / Transport ---
+merchant contains SLOVNAFT -> @fuel #transport
+merchant contains OMV -> @fuel #transport
+merchant contains SHELL -> @fuel #transport
+merchant contains "PARKOVISKO" -> @transport #parking
+
+# --- Dining / Coffee / Snacks ---
+merchant contains "Cafe relevant" -> @dining #coffee
+merchant contains MINIT -> @dining #snack
+merchant contains "NAS DVOR" -> @dining #foodout
+merchant contains pirozkar -> @dining #foodout
+merchant contains STREETFOOD -> @dining #foodout
+merchant contains CROATIA -> @dining #dessert
+
+# --- Subscriptions / Media ---
+merchant contains "DENNIK POSTOJ" -> @subscription #news
+merchant contains dennikn.sk -> @subscription #news
+merchant contains PREDPREDAJ.SK -> @entertainment #tickets
+merchant contains "WWW.RADOST.DIGITAL" -> @subscription #digital
+
+# --- Education / Kids ---
+merchant contains Preply -> @education #learning
+merchant contains "BINARYTECH" -> @electronics #device
+merchant contains "SMA CARNEO" -> @electronics #device
+
+# --- Clothing / Personal ---
+merchant contains VINTED -> @clothing #secondhand
+merchant contains SINSAY -> @clothing #apparel
+merchant contains "SECOND HAND" -> @clothing #thrift
+
+# --- Drugstore / Pharmacy / Health ---
+merchant contains "DM Novum" -> @drugstore #health
+merchant contains "DM Solivar" -> @drugstore #health
+merchant contains "DM " -> @drugstore #health
+merchant contains BENU -> @pharmacy #health
+
+# --- Books / Reading ---
+merchant contains Martinus -> @books #reading
+merchant contains KNIHA -> @books #reading
+merchant contains megaknihy -> @books #reading
+merchant contains knihobot -> @books #reading
+
+# --- Events / One-off ---
+merchant contains "PREDPREDAJ.SK" -> @events #tickets
+merchant contains "CSOB LEASING" -> @leasing #auto
+
+# --- Electronics / Misc ---
+merchant contains BINARYTECH -> @electronics #purchase
+
+# (Add further rules below as new patterns emerge.)

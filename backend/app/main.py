@@ -12,9 +12,7 @@ static_path = os.getenv("FRONTEND_STATIC_PATH")
 if static_path:
     static_path = Path(static_path)
     if static_path.exists() and static_path.is_dir():
-        app.mount(
-            "/static", StaticFiles(directory=static_path, html=False), name="static"
-        )
+        app.mount("/static", StaticFiles(directory=static_path, html=False), name="static")
 
 # Allow CORS for local frontend
 

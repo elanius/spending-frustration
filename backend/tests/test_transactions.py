@@ -1,6 +1,5 @@
-import io
-import csv
 import bson
+from datetime import datetime
 from fastapi.testclient import TestClient
 from pymongo.collection import Collection
 
@@ -9,46 +8,47 @@ def auth_header(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_transactions_flow(
-    app_client: TestClient, auth_token: str, transactions_col: Collection
-) -> None:
+def test_transactions_flow(app_client: TestClient, auth_token: str, transactions_col: Collection) -> None:
     # Start with empty list
     list_empty = app_client.get("/transactions", headers=auth_header(auth_token))
     assert list_empty.status_code == 200
     assert list_empty.json() == []
 
-    # Upload CSV to create transactions
-    csv_buffer = io.StringIO()
-    writer = csv.writer(csv_buffer)
-    writer.writerow(["date", "amount", "merchant", "category", "tags", "notes"])
-    writer.writerow(
-        [
-            "2025-09-01",
-            "42.15",
-            "Coffee Roasters",
-            "food_drink",
-            "coffee,morning",
-            "Team sync latte",
-        ]
-    )
-    writer.writerow(
-        ["2025-09-02", "15.00", "Sandwich Shop", "food_drink", "lunch", ""]
-    )  # second row
-    csv_buffer.seek(0)
-    files = {"file": ("transactions.csv", csv_buffer.read(), "text/csv")}
-    upload_resp = app_client.post(
-        "/upload-statement", headers=auth_header(auth_token), files=files
-    )
-    assert upload_resp.status_code == 200, upload_resp.text
-    body = upload_resp.json()
-    assert body["inserted"] == 2
+    # Simulate creating transactions directly in DB (upload endpoint disabled in app)
+    # Prepare two documents
+    inserted_ids = []
+    for row in [
+        {
+            "date": datetime(2025, 9, 1),
+            "amount": 42.15,
+            "merchant": "Coffee Roasters",
+            "category": "food_drink",
+            "tags": ["coffee", "morning"],
+            "notes": "Team sync latte",
+        },
+        {
+            "date": datetime(2025, 9, 2),
+            "amount": 15.00,
+            "merchant": "Sandwich Shop",
+            "category": "food_drink",
+            "tags": ["lunch"],
+            "notes": None,
+        },
+    ]:
+        result = transactions_col.insert_one(
+            {
+                **row,
+                "user_id": transactions_col.database["users"].find_one()["_id"],
+            }
+        )
+        inserted_ids.append(result.inserted_id)
 
-    # List again
+    # List after insert
     list_resp = app_client.get("/transactions", headers=auth_header(auth_token))
     assert list_resp.status_code == 200
     items = list_resp.json()
     assert len(items) == 2
-    first_id = items[0]["_id"]
+    first_id = items[0]["_id"] if "_id" in items[0] else items[0]["id"]
     # DB assertion: two docs present
     db_docs = list(transactions_col.find({}))
     assert len(db_docs) == 2
@@ -73,9 +73,7 @@ def test_transactions_flow(
     assert patch_resp.status_code == 200
 
     # Get single to verify patch
-    get_one = app_client.get(
-        f"/transactions/{first_id}", headers=auth_header(auth_token)
-    )
+    get_one = app_client.get(f"/transactions/{first_id}", headers=auth_header(auth_token))
     assert get_one.status_code == 200
     assert get_one.json()["notes"] == "Updated note"
     # DB assertion for patch

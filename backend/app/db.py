@@ -1,4 +1,5 @@
 import os
+from bson import ObjectId
 from pymongo import MongoClient
 
 # Central Mongo client/DB setup. For tests we optionally allow an in-memory
@@ -16,3 +17,13 @@ else:
 db = client[os.getenv("MONGO_DB", "spending-frustration")]
 users_collection = db["users"]
 transactions_collection = db["transactions"]
+rules_collection = db["rules"]
+user_rules_collection = db["user_rules"]
+
+
+def get_user_id(user: str) -> ObjectId:
+    """Helper to get a user's ObjectId by email."""
+    user_doc = users_collection.find_one({"email": user})
+    if not user_doc:
+        raise ValueError(f"User '{user}' not found")
+    return user_doc["_id"]

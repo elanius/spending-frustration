@@ -1,4 +1,5 @@
 # auth.py: Authentication utilities for FastAPI
+import os
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -13,7 +14,7 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 SECRET_KEY = "CHANGE_ME_TO_A_RANDOM_SECRET"  # Should be set from env in production
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 24
+ACCESS_TOKEN_EXPIRE_HOURS = int(os.getenv("ACCESS_TOKEN_EXPIRE_HOURS", 24))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

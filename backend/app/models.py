@@ -1,36 +1,38 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from bson import ObjectId
 from datetime import datetime
 
 
-class DBUser(BaseModel):
-    _id: Optional[ObjectId] = None
+class User(BaseModel):
+    id: ObjectId | None = Field(default=None, alias="_id")
     email: EmailStr
     hashed_password: str
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-class DBTransaction(BaseModel):
-    _id: Optional[ObjectId] = None
+class Transaction(BaseModel):
+    id: ObjectId | None = Field(default=None, alias="_id")
     user_id: ObjectId
     date: datetime
     amount: float
     merchant: str
-    category: Optional[str] = None
-    tags: Optional[list[str]] = None
-    notes: Optional[str] = None
+    category: str | None = None
+    tags: list[str] | None = None
+    notes: str | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-class DBRule(BaseModel):
-    _id: Optional[ObjectId] = None
+class RuleDB(BaseModel):
+    rule: str
+    name: str | None = None
+    active: bool = True
+
+
+class UserRules(BaseModel):
+    id: ObjectId | None = Field(default=None, alias="_id")
     user_id: ObjectId
-    conditions: list  # store raw list of dicts; routers validate structure
-    logical_operator: str
-    priority: int
-    action: dict  # {category, tags}
+    rules: list[RuleDB]
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

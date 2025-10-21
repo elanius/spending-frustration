@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional, Any
+from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from bson import ObjectId
 from app.auth import get_current_user
@@ -12,24 +12,6 @@ rules_collection = db["rules"]
 
 
 # --------- Pydantic Models (local, Pydantic v2) ---------
-class Condition(BaseModel):
-    field: str
-    operator: str
-    value: Any
-
-
-class Action(BaseModel):
-    category: Optional[str] = None
-    tags: Optional[List[str]] = []
-
-    @field_validator("tags", mode="before")
-    @classmethod
-    def normalize_tags(cls, value):
-        if value is None:
-            return []
-        if isinstance(value, str):
-            value = [tag.strip() for tag in value.split(",") if tag.strip()]
-        return value
 
 
 class RuleBase(BaseModel):
@@ -125,9 +107,7 @@ def get_rule(rule_id: str, current_email: str = Depends(get_current_user)):
 
 
 @router.put("/{rule_id}")
-def update_rule(
-    rule_id: str, update: RuleUpdate, current_email: str = Depends(get_current_user)
-):
+def update_rule(rule_id: str, update: RuleUpdate, current_email: str = Depends(get_current_user)):
     user = get_user_document(current_email)
     oid = parse_object_id(rule_id)
     update_data = {
@@ -137,9 +117,7 @@ def update_rule(
     }
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
-    res = rules_collection.update_one(
-        {"_id": oid, "user_id": user["_id"]}, {"$set": update_data}
-    )
+    res = rules_collection.update_one({"_id": oid, "user_id": user["_id"]}, {"$set": update_data})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Rule not found")
     return {"message": "Rule updated"}

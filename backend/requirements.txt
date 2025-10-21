@@ -11,3 +11,4 @@ httpx
 anyio
 mongomock
 libpath
+ruff
