@@ -13,10 +13,17 @@ class Filter:
         self._conditions = conditions
         self._logical_operator = logical_operator
 
+    @property
+    def conditions(self) -> list[Condition]:
+        return self._conditions
+
+    @property
+    def logical_operator(self) -> str:
+        return self._logical_operator
+
     def matches(self, transaction: Transaction) -> bool:
         if self._logical_operator == "AND":
             return all(condition.evaluate(transaction) for condition in self._conditions)
-        elif self._logical_operator == "OR":
+        if self._logical_operator == "OR":
             return any(condition.evaluate(transaction) for condition in self._conditions)
-        else:
-            raise ValueError(f"Unsupported logical operator: {self._logical_operator}")
+        raise ValueError(f"Unsupported logical operator: {self._logical_operator}")

@@ -20,10 +20,10 @@ import argparse
 from pathlib import Path
 from typing import Iterable
 
-from app.db import users_collection, user_rules_collection
+from app.db import db
 from app.rules.parser import parse_rule
 from app.rules.rule import Rule
-from app.models import User, UserRules, RuleDB
+from app.models import User, RuleDB
 
 
 def read_rules_from_file(file_path: Path) -> list[str]:
@@ -48,22 +48,22 @@ def validate_rules(raw_lines: Iterable[str]) -> list[Rule]:
 
 
 def import_user_rules(user: str, rules: list[Rule], dry_run: bool):
-    user_doc = users_collection.find_one({"email": user})
-    if not user_doc:
+    try:
+        user_doc = db.get_user_id(user)
+    except ValueError:
         raise SystemExit(f"User '{user}' not found")
-    else:
-        user = User.model_validate(user_doc)
-
-    user_rules = UserRules(user_id=user.id, rules=[RuleDB(rule=str(r)) for r in rules])
+    user = User.model_validate(user_doc)
 
     if dry_run:
-        print("Dry run - not inserting into database. Resulting document would be:")
-        print(user_rules)
+        print("Dry run - would insert the following rules:")
+        for r in rules:
+            print(str(r))
         return
 
-    user_rules_doc = user_rules.model_dump(exclude_none=True)
-    user_rules_collection.insert_one(user_rules_doc)
-    print(f"Stored {len(rules)} rules for user {user}")
+    for r in rules:
+        rule_doc = RuleDB(user_id=user.id, rule=str(r), active=True)
+        db.add_rule(user.id, rule_doc, priority=0)
+    print(f"Inserted {len(rules)} rules for user {user}")
 
 
 def main(argv: list[str] | None = None):

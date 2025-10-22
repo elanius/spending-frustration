@@ -118,9 +118,6 @@ def parse(data: str, user_id: ObjectId) -> list[Transaction]:
             date=date_obj,
             amount=amount,
             merchant=merchant,
-            category=None,
-            tags=[],
-            notes=None,
         )
         transactions.append(tx)
 

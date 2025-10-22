@@ -7,6 +7,18 @@ class Condition:
         self._operator = operator
         self._value = value
 
+    @property
+    def field(self) -> str:
+        return self._field
+
+    @property
+    def operator(self) -> str:
+        return self._operator
+
+    @property
+    def value(self) -> str | float | int:
+        return self._value
+
     def evaluate(self, transaction: Transaction) -> bool:
         field_value = getattr(transaction, self._field, None)
         if field_value is None:

@@ -1,4 +1,4 @@
-from app.rules.filter import Filter, FilterParseError
+from app.rules.filter import Filter
 from app.rules.parser import parse_rule
 
 
@@ -50,10 +50,10 @@ def test_mixed_logical_operators_error():
     line = "amount > 10 AND merchant contains Lidl OR merchant contains Kaufland -> #x"
     try:
         parse_rule(line)
-    except FilterParseError as e:
+    except ValueError as e:
         assert "Mixed logical operators" in str(e)
     else:
-        raise AssertionError("Expected FilterParseError for mixed logical operators")
+        raise AssertionError("Expected ValueError for mixed logical operators")
 
 
 # ---------------- Additional syntax / validation error cases ---------------- #
@@ -65,10 +65,10 @@ def assert_parse_error(line: str, contains: str, use_rule: bool = True):
             parse_rule(line)
         else:
             Filter.parse(line)
-    except FilterParseError as e:
+    except ValueError as e:
         assert contains in str(e), f"Expected '{contains}' in error, got: {e}"  # noqa: E501
     else:
-        raise AssertionError(f"Expected FilterParseError for line: {line}")
+        raise AssertionError(f"Expected ValueError for line: {line}")
 
 
 def test_error_missing_arrow():

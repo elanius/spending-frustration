@@ -1,13 +1,12 @@
 from pathlib import Path
-from bson import ObjectId
 from app.importers import mbank
 from app.models import Transaction
 from app.rules.rule_engine import RuleEngine
-from app.db import transactions_collection
+from app.db import db
 
 
 class Importer:
-    def __init__(self, user_id: ObjectId):
+    def __init__(self, user_id: str):
         self._user_id = user_id
 
     def import_from_file(self, file_path: Path) -> int:
@@ -24,9 +23,8 @@ class Importer:
         if transactions:
             rule_engine = RuleEngine(user_id=self._user_id)
             rule_engine.apply_rules(transactions)
-            db_result = transactions_collection.insert_many(tx.model_dump(exclude_none=True) for tx in transactions)
-
-            return len(db_result.inserted_ids)
+            inserted = db.insert_transactions(transactions)
+            return len(inserted)
 
         print("No valid transactions found.")
         return 0

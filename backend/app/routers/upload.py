@@ -10,13 +10,12 @@ from typing import List, Optional
 from io import StringIO
 import csv
 from datetime import datetime
-from bson import ObjectId
-from app.auth import get_current_user
-from app.db import db, users_collection
+from app.auth import get_user_id
+from app.db import db
 
 router = APIRouter()
 
-transactions_collection = db["transactions"]
+# All transaction insertion now goes through db.insert_transaction
 
 
 REQUIRED_COLUMNS = {"date", "amount", "merchant"}
@@ -25,10 +24,10 @@ ALL_COLUMNS = REQUIRED_COLUMNS.union(OPTIONAL_COLUMNS)
 
 
 def get_user_document(email: str):
-    user_document = users_collection.find_one({"email": email})
-    if not user_document:
+    try:
+        return db.get_user_id(email)
+    except ValueError:
         raise HTTPException(status_code=401, detail="User not found")
-    return user_document
 
 
 def parse_date(value: str) -> datetime:
@@ -47,9 +46,7 @@ def normalize_tags(raw_tags: Optional[str]):
 
 
 @router.post("")
-async def upload_statement(
-    file: UploadFile = File(...), current_email: str = Depends(get_current_user)
-):
+async def upload_statement(file: UploadFile = File(...), current_email: str = Depends(get_user_id)):
     if not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only .csv files are supported")
 
@@ -72,7 +69,7 @@ async def upload_statement(
 
     unexpected = header_columns - ALL_COLUMNS
 
-    inserted_documents: List[ObjectId] = []
+    inserted_documents: List[str] = []
     skipped_rows: List[dict] = []
     sample_rows: List[dict] = []
 
@@ -87,13 +84,11 @@ async def upload_statement(
             if merchant_value == "":
                 raise ValueError("merchant empty")
             category_value = (csv_row.get("category") or None) or None
-            tags_value = (
-                normalize_tags(csv_row.get("tags")) if csv_row.get("tags") else []
-            )
+            tags_value = normalize_tags(csv_row.get("tags")) if csv_row.get("tags") else []
             notes_value = (csv_row.get("notes") or None) or None
 
             document = {
-                "user_id": user_document["_id"],
+                "user_id": str(user_document["_id"]),
                 "date": date_value,
                 "amount": amount_value,
                 "merchant": merchant_value,
@@ -101,16 +96,15 @@ async def upload_statement(
                 "tags": tags_value if tags_value else [],
                 "notes": notes_value,
             }
-            result = transactions_collection.insert_one(document)
-            inserted_documents.append(result.inserted_id)
+            inserted_id = db.insert_transaction_for_user(
+                str(user_document["_id"]), {k: v for k, v in document.items() if k != "user_id"}
+            )
+            inserted_documents.append(str(inserted_id))
             if len(sample_rows) < 5:
                 sample_rows.append(
                     {
-                        **{
-                            k: (str(v) if isinstance(v, (datetime, ObjectId)) else v)
-                            for k, v in document.items()
-                        },
-                        "_id": str(result.inserted_id),
+                        **{k: (str(v) if isinstance(v, datetime) else v) for k, v in document.items()},
+                        "_id": str(inserted_id),
                     }
                 )
         except Exception as row_exc:

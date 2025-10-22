@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-from bson import ObjectId
 
 # Ensure backend root is importable
 _ROOT = Path(__file__).resolve().parents[2]
@@ -18,7 +17,7 @@ def test_mbank_match_and_parse():
     assert mbank.match(raw) is True, "Should detect mBank statement"
 
     # Provide a synthetic user_id placeholder now required by the parser
-    transactions = mbank.parse(raw, ObjectId())
+    transactions = mbank.parse(raw, "test-user-id")
     # Basic sanity checks
     assert len(transactions) > 50  # file contains many rows
     first = transactions[0]

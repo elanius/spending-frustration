@@ -1,12 +1,33 @@
 import os
+from app.logging import setup_logging
+
+# Configure logging early so other modules (routers, auth, db) pick up config
+setup_logging()
+
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, transactions
+from app.routers import auth, transactions, rules, actions
 from pathlib import Path
 
+
 app = FastAPI()
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@app.on_event("startup")
+async def on_startup():
+    logger.info("Application startup: Spending Frustration API")
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    logger.info("Application shutdown")
+
 
 static_path = os.getenv("FRONTEND_STATIC_PATH")
 if static_path:
@@ -27,8 +48,9 @@ app.add_middleware(
 # Routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(transactions.router, prefix="/transactions", tags=["transactions"])
-# app.include_router(rules.router, prefix="/rules", tags=["rules"])
+app.include_router(rules.router, prefix="/rules", tags=["rules"])
 # app.include_router(upload.router, prefix="/upload-statement", tags=["upload"])
+app.include_router(actions.router, prefix="/actions", tags=["actions"])
 
 
 @app.get("/")

@@ -1,7 +1,7 @@
 import re
 from typing import Any, Iterable
 
-from app.rules.filter import Filter
+from app.rules.filter import Filter, ALLOWED_FIELDS
 from app.rules.rule import Rule
 from app.rules.action import Action
 
@@ -53,6 +53,8 @@ def _parse_condition(line: str) -> Condition:
         except ValueError:
             value = raw_value
 
+    if field_name not in ALLOWED_FIELDS:
+        raise ValueError(f"Unknown field '{field_name}'")
     return Condition(field=field_name, operator=operator, value=value)
 
 
@@ -96,9 +98,9 @@ def parse_rule(rule_text: str) -> Rule:
     filter_part = left.strip()
     action_part = right.strip()
     if not filter_part:
-        raise ValueError("Filter part is empty")
+        raise ValueError("Empty filter part")
     if not action_part:
-        raise ValueError("Action part is empty")
+        raise ValueError("Empty action part")
 
     filter_obj = parse_filter(filter_part)
     action_obj = parse_action(action_part)

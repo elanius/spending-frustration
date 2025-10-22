@@ -45,10 +45,10 @@ const TransactionList: React.FC = () => {
     if (!transactions.length) return <div>No transactions found.</div>;
 
     return (
-        <div>
+        <div className="d-flex flex-column h-100">
             <h2 className="h5 mb-3">Transactions</h2>
-            <div className="table-responsive">
-                <table className="table table-sm table-striped table-hover align-middle">
+            <div className="table-responsive flex-grow-1" style={{ overflow: "auto" }}>
+                <table className="table table-sm table-striped table-hover align-middle" style={{ height: "100%" }}>
                     <thead className="table-light">
                         <tr>
                             <th scope="col">Date</th>

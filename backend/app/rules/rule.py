@@ -9,6 +9,14 @@ class Rule:
         self._action = action
         self._raw_rule = raw_rule
 
+    @property
+    def filter(self) -> Filter:
+        return self._filter
+
+    @property
+    def action(self) -> Action:
+        return self._action
+
     def evaluate(self, transaction: Transaction):
         if self._filter.matches(transaction):
             self._action.apply(transaction)

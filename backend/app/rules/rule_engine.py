@@ -1,35 +1,30 @@
-"""Rule engine for string-based user rules stored in a single document.
-
-Collection: ``user_rules``
-Document shape:
-    { "user_id": <ObjectId>, "rules": [ {"rule": "merchant contains Coffee -> @coffee #caffeinated", "name": "Coffee", "active": true }, ... ] }
-"""
-
-from bson import ObjectId
-
-from app.models import Transaction, UserRules
-from app.db import user_rules_collection
+import logging
+from app.models import Transaction
+from app.db import db
 from app.rules.rule import Rule
 from app.rules.parser import parse_rule
 
+logger = logging.getLogger(__name__)
+
 
 class RuleEngine:
-    def __init__(self, user_id: ObjectId):
-        self._user_id = user_id
+    def __init__(self, user_id: str):
+        self._user_id = user_id  # stored as string externally
         self._rules: list[Rule] = self._load_rules()
 
     def _load_rules(self) -> list[Rule]:
-        doc = user_rules_collection.find_one({"user_id": self._user_id})
-        if not doc:
+        docs = db.get_rules(self._user_id)
+        if not docs:
             return []
 
-        user_rules = UserRules.model_validate(doc)
-        rules = [parse_rule(r.rule) for r in user_rules.rules if r.active]
+        rules = [parse_rule(r.rule) for r in docs if r.active]
         return rules
 
     def apply_rules(self, transactions: list[Transaction]) -> list[Transaction]:
+        modified_transactions = []
         for transaction in transactions:
             for rule in self._rules:
-                rule.evaluate(transaction)
+                if rule.evaluate(transaction):
+                    modified_transactions.append(transaction)
 
-        return transactions
+        return modified_transactions

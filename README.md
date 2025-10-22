@@ -46,6 +46,43 @@ Detailed docs live in the `docs/` folder:
 - Frontend UI build-out
 - Rule application audit trail
 
+## Frontend (Refactor Overview)
+The React (Vite + TypeScript) frontend now includes minimal, focused components:
+
+| Component | Purpose |
+|-----------|---------|
+| `NavBar` | Simple in-memory navigation between feature views (no router yet) |
+| `Transactions` | Lists transactions with basic filtering (merchant/category/tags/amount). Can optionally hit server filter endpoint. |
+| `RulesManager` | CRUD interface for textual rules (each rule is a single string; name + active flag) |
+| `api.ts` | Tiny fetch helper that injects `Authorization: Bearer <token>` if `localStorage.authToken` exists |
+
+Run it:
+```sh
+cd frontend
+npm install
+npm run dev
+```
+Optionally create `frontend/.env` with `VITE_API_BASE=http://localhost:8000`.
+
+### Authentication Flow (Frontend)
+1. Start the backend (see quickstart above).
+2. Visit the frontend dev server (default: http://localhost:5173).
+3. You'll see a login/register card. First-time: switch to Register, enter username + password (email optional), submit.
+4. On success, switch to Login automatically; enter credentials and login. A JWT is stored in `localStorage.authToken`.
+5. After login, the app shows navigation (Transactions / Rules). All API calls now include `Authorization: Bearer <token>`.
+6. Use the Logout button (top-right) to clear the token and return to the auth screen.
+
+The token is not auto-refreshed; for now you may need to re-login after expiry (24h default). Replace the hard-coded `SECRET_KEY` in `backend/app/auth.py` before any multi-user scenario.
+
+### Rule Creation Notes
+- New textual rules are appended at the end of your rule list automatically (priority = current count).
+- You can optionally supply a `priority` integer in the POST body to insert at a specific index.
+- Backend accepts omission of `priority` and will compute the next index.
+
+Rules are currently stored as plain text lines (see `UserRules` and `RuleDB` models) and parsed server-side. The UI edits the raw rule string; advanced structured editing is postponed.
+
+Planned UI enhancements (not yet implemented): pagination, routing (React Router), optimistic updates, validation & toast notifications, multi-condition visual builder.
+
 
 ## 📋 License
 
