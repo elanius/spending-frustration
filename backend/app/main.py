@@ -1,20 +1,22 @@
 import os
-from app.logging import setup_logging
+import logging
+# from app.logging import setup_logging
 
 # Configure logging early so other modules (routers, auth, db) pick up config
-setup_logging()
+# setup_logging()
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, transactions, rules, actions
-from pathlib import Path
+from app.db import DB
 
+DB().get_instance()  # Initialize DB singleton
 
 app = FastAPI()
 
-import logging
 
 logger = logging.getLogger(__name__)
 

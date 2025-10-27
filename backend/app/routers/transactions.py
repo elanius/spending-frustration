@@ -3,9 +3,10 @@ from typing import Optional, List
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 from app.auth import get_user_id
-from app.db import db
+from app.db import DB
 from app.models import Transaction
 
+db = DB.get_instance()
 router = APIRouter()
 
 

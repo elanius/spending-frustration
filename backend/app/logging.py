@@ -5,8 +5,6 @@ file handler plus a console handler. The log level is controlled by the
 `LOG_LEVEL` environment variable (defaults to INFO).
 """
 
-from __future__ import annotations
-
 import logging
 import os
 from logging.handlers import RotatingFileHandler

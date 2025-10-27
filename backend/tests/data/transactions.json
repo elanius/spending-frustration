@@ -1,0 +1,136 @@
+[
+    {
+        "_id": {
+            "$oid": "6900e0b9d06ca0147663e727"
+        },
+        "user_id": {
+            "$oid": "6901103672efed3efd6c0892"
+        },
+        "asset": {
+            "bank": {
+                "account_name": "MKONTO",
+                "iban": "SK9283605207004201924152",
+                "bic": "BREXSKBX"
+            }
+        },
+        "counterparty": {
+            "bank": {
+                "account_name": "Rastislav Alexovic ",
+                "iban": "CZ4120100000002200790544"
+            }
+        },
+        "date": {
+            "$date": "2024-08-09T00:00:00.000Z"
+        },
+        "amount": 400,
+        "transaction_type": "transfer",
+        "description": "Sona - Zuzka",
+        "details": {
+            "balance": 2401.19,
+            "operation_type": "PRIJATÁ PLATBA MEDZIBANKOVÁ",
+            "symbols": {
+                "ks": "",
+                "vs": "",
+                "ss": ""
+            }
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6900e0b9d06ca0147663e728"
+        },
+        "user_id": {
+            "$oid": "6901103672efed3efd6c0892"
+        },
+        "asset": {
+            "bank": {
+                "account_name": "MKONTO",
+                "iban": "SK9283605207004201924152",
+                "bic": "BREXSKBX"
+            }
+        },
+        "counterparty": {
+            "merchant": {
+                "name": "COOP PO PJ 063"
+            }
+        },
+        "date": {
+            "$date": "2024-08-08T00:00:00.000Z"
+        },
+        "amount": -17.76,
+        "transaction_type": "card_payment",
+        "description": "COOP PO PJ 063 /Bzenov DÁTUM VYKONANIA TRANSAKCIE: 2024-08-08",
+        "details": {
+            "balance": 2383.43,
+            "operation_type": "PLATBA KARTOU",
+            "location": "Bzenov"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6900e0b9d06ca0147663e731"
+        },
+        "user_id": {
+            "$oid": "6901103672efed3efd6c0892"
+        },
+        "asset": {
+            "bank": {
+                "account_name": "MKONTO",
+                "iban": "SK9283605207004201924152",
+                "bic": "BREXSKBX"
+            }
+        },
+        "counterparty": {
+            "bank": {
+                "account_name": "O2 Slovakia, s.r.o.  ",
+                "iban": "SK11 0900 0000 0006 3096 4920"
+            }
+        },
+        "date": {
+            "$date": "2024-08-12T00:00:00.000Z"
+        },
+        "amount": -22.22,
+        "transaction_type": "transfer",
+        "description": "DIRECT DEBIT",
+        "details": {
+            "balance": 1599.39,
+            "operation_type": "INKASO",
+            "symbols": {
+                "ks": "",
+                "vs": "",
+                "ss": ""
+            }
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6900e89a9bae663231c0e4f1"
+        },
+        "user_id": {
+            "$oid": "6901103672efed3efd6c0892"
+        },
+        "asset": {
+            "bank": {
+                "account_name": "MKONTO",
+                "iban": "SK9283605207004201924152",
+                "bic": "BREXSKBX"
+            }
+        },
+        "counterparty": {
+            "merchant": {
+                "name": "CSOB Nam. leg. Pres"
+            }
+        },
+        "date": {
+            "$date": "2024-08-09T00:00:00.000Z"
+        },
+        "amount": -100,
+        "transaction_type": "withdrawal",
+        "description": "CSOB Nam. leg. Pres/Presov DÁTUM VYKONANIA TRANSAKCIE: 2024-08-09",
+        "details": {
+            "balance": 2128.57,
+            "operation_type": "VÝBER V BANKOMATE",
+            "location": "Presov"
+        }
+    }
+]

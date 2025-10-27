@@ -11,8 +11,9 @@ from io import StringIO
 import csv
 from datetime import datetime
 from app.auth import get_user_id
-from app.db import db
+from app.db import DB
 
+db = DB.get_instance()
 router = APIRouter()
 
 # All transaction insertion now goes through db.insert_transaction

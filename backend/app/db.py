@@ -7,19 +7,21 @@ from app.models import RuleDB, Transaction, User
 
 logger = logging.getLogger(__name__)
 
-# Central Mongo client/DB setup. For tests we optionally allow an in-memory
-# mongomock fallback (triggered by MONGO_URI starting with "mongomock://").
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 
-if MONGO_URI.startswith("mongomock://"):
-    # Lazy import so production deployments do not require mongomock.
-    import mongomock  # type: ignore
+def get_mongo_client():
+    # Central Mongo client/DB setup. For tests we optionally allow an in-memory
+    # mongomock fallback (triggered by MONGO_URI starting with "mongomock://").
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 
-    mongo_client = mongomock.MongoClient()
-    logger.info("Using mongomock MongoDB client for testing")
-else:
-    mongo_client = MongoClient(MONGO_URI)
-    logger.info("Connected to MongoDB at %s", MONGO_URI)
+    if mongo_uri.startswith("mongomock://"):
+        # Lazy import so production deployments do not require mongomock.
+        import mongomock  # type: ignore
+
+        logger.info("Using mongomock MongoDB client for testing")
+        return mongomock.MongoClient()
+    else:
+        logger.info("Connected to MongoDB at %s", mongo_uri)
+        return MongoClient(mongo_uri)
 
 
 def to_oid(id_str: str) -> ObjectId:
@@ -29,7 +31,14 @@ def to_oid(id_str: str) -> ObjectId:
 
 
 class DB:
+    @classmethod
+    def get_instance(cls) -> "DB":
+        if not hasattr(cls, "_instance"):
+            cls._instance = DB()
+        return cls._instance
+
     def __init__(self):
+        mongo_client = get_mongo_client()
         self._db = mongo_client[os.getenv("MONGO_DB", "spending-frustration")]
         # Private collections
         self._users_collection = self._db["users"]
@@ -117,6 +126,3 @@ class DB:
     def get_transactions(self, user: str) -> list[Transaction]:
         docs = self._transactions_collection.find({"user_id": to_oid(user)})
         return [Transaction.model_validate(doc) for doc in docs]
-
-
-db = DB()

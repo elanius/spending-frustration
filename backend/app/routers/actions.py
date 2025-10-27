@@ -4,8 +4,9 @@ from pydantic import BaseModel
 
 from app.auth import get_user_id
 from app.rules.rule_engine import RuleEngine
-from app.db import db
+from app.db import DB
 
+db = DB.get_instance()
 router = APIRouter()
 logger = logging.getLogger(__name__)
 

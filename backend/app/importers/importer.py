@@ -2,7 +2,9 @@ from pathlib import Path
 from app.importers import mbank
 from app.models import Transaction
 from app.rules.rule_engine import RuleEngine
-from app.db import db
+from app.db import DB
+
+db = DB.get_instance()
 
 
 class Importer:

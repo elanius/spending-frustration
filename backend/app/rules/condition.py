@@ -19,8 +19,14 @@ class Condition:
     def value(self) -> str | float | int:
         return self._value
 
+    def _field_value(self, transaction: Transaction):
+        if hasattr(transaction, self._field):
+            return getattr(transaction, self._field, None)
+        else:
+            raise ValueError(f"Unsupported field: {self._field}")
+
     def evaluate(self, transaction: Transaction) -> bool:
-        field_value = getattr(transaction, self._field, None)
+        field_value = self._field_value(transaction)
         if field_value is None:
             return False
         if self._operator == "==":

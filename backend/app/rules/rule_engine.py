@@ -1,9 +1,10 @@
 import logging
 from app.models import Transaction
-from app.db import db
+from app.db import DB
 from app.rules.rule import Rule
 from app.rules.parser import parse_rule
 
+db = DB.get_instance()
 logger = logging.getLogger(__name__)
 
 

@@ -1,8 +1,10 @@
 import argparse
 from pathlib import Path
 
-from app.db import db
+from app.db import DB
 from app.importers.importer import Importer
+
+db = DB.get_instance()
 
 
 def main():  # pragma: no cover - utility script

@@ -7,6 +7,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from app.importers import mbank  # noqa: E402
+from app.models import TransactionType  # noqa: E402
 
 
 def test_mbank_match_and_parse():
@@ -20,12 +21,25 @@ def test_mbank_match_and_parse():
     transactions = mbank.parse(raw, "test-user-id")
     # Basic sanity checks
     assert len(transactions) > 50  # file contains many rows
-    first = transactions[0]
-    # Validate required fields populated
-    assert first.date.year == 2024
-    assert isinstance(first.amount, float)
-    assert first.merchant != "" and first.merchant is not None
-    # Ensure both positive (credits) and negative (debits) present
-    amounts = {t.amount for t in transactions}
-    assert any(a > 0 for a in amounts), "Expect at least one credit"
-    assert any(a < 0 for a in amounts), "Expect at least one debit"
+
+    for tx in transactions:
+        assert tx.user_id == "test-user-id"
+        assert isinstance(tx.amount, float) and tx.amount != 0.0
+        assert tx.date is not None and tx.date.year == 2024
+
+        if tx.transaction_type is TransactionType.CARD_PAYMENT:
+            assert tx.counterparty is not None
+            assert tx.counterparty.merchant is not None
+            assert tx.counterparty.merchant.name != ""
+        elif tx.transaction_type is TransactionType.TRANSFER:
+            assert tx.counterparty is not None
+            assert tx.counterparty.bank is not None
+            assert tx.counterparty.bank.iban is not None
+        elif tx.transaction_type is TransactionType.ACCOUNT_FEE:
+            assert tx.counterparty is not None
+            assert tx.counterparty.bank is not None
+            assert tx.counterparty.bank.account_name == "mBank"
+        elif tx.transaction_type is TransactionType.WITHDRAWAL:
+            assert tx.counterparty is not None
+            assert tx.counterparty.merchant is not None
+            assert tx.counterparty.merchant.name != ""

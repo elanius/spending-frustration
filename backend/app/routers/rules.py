@@ -3,10 +3,10 @@ from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import HTTPException
 from app.auth import get_user_id
-from app.db import db
+from app.db import DB
 from app.rules.parser import parse_rule
 
-
+db = DB.get_instance()
 router = APIRouter()
 
 

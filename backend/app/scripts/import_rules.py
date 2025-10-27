@@ -20,10 +20,12 @@ import argparse
 from pathlib import Path
 from typing import Iterable
 
-from app.db import db
+from app.db import DB
 from app.rules.parser import parse_rule
 from app.rules.rule import Rule
 from app.models import User, RuleDB
+
+db = DB.get_instance()
 
 
 def read_rules_from_file(file_path: Path) -> list[str]:
