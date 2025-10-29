@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api, TextRule, TextRuleCreateInput, TextRuleUpdateInput } from "../api";
 
 interface EditingState {
-    index?: number; // position in rules array if editing existing
+    index?: number;
     form: TextRuleCreateInput | TextRuleUpdateInput;
 }
 
@@ -14,6 +14,10 @@ const RulesManager: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [editing, setEditing] = useState<EditingState | null>(null);
     const [reapplying, setReapplying] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [importing, setImporting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [deletingAll, setDeletingAll] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -64,64 +68,54 @@ const RulesManager: React.FC = () => {
             setEditing(null);
             await load();
         } catch (e: any) {
-            alert(e.message);
+            setError(e?.message || "Failed to save rule");
         }
     }
 
     async function remove(index: number) {
         const r = rules[index];
         if (!r.id) {
-            alert("Rule has no id");
+            setError("Rule has no id");
             return;
         }
-        if (!confirm("Delete rule?")) return;
         try {
             await api.delete(`/rules/${r.id}`);
             await load();
         } catch (e: any) {
-            alert(e.message);
+            setError(e?.message || "Failed to delete rule");
         }
     }
 
-    // Toggle active state for a rule (optimistic)
     async function toggleActive(index: number) {
         const r = rules[index];
         if (!r.id) {
-            alert("Cannot change active state for rule without id");
+            setError("Cannot change active state for rule without id");
             return;
         }
         const newActive = !r.active;
-        // optimistic update
         setRules((prev) => prev.map((x, i) => (i === index ? { ...x, active: newActive } : x)));
         try {
             await api.put(`/rules/${r.id}`, { active: newActive });
         } catch (e: any) {
-            alert(e.message);
+            setError(e?.message || "Failed to update rule");
             await load();
         }
     }
 
-    // Reorder rules locally and persist order to backend
-    async function move(index: number, offset: number) {
-        // Reordering deprecated for per-rule storage without priority.
-        // Function intentionally left blank for backward compatibility.
-    }
+    async function move(index: number, offset: number) {}
 
     async function reapplyAll() {
-        // Call backend endpoint directly without confirmation
         setReapplying(true);
         try {
-            // New endpoint: POST /apply_all_rule
             const result = await api.post<{
                 success: boolean;
                 details?: string;
             }>("/actions/apply_all_rules", {});
             if (!result || !result.success) {
-                // keep UX simple: notify user
-                alert(result.details || "Re-apply request returned unexpected response.");
+                setError(result.details || "Re-apply request returned unexpected response.");
             }
         } catch (e: any) {
-            alert(e.message);
+            setError(e?.message || "Failed to re-apply rules");
         } finally {
             setReapplying(false);
         }
@@ -133,10 +127,74 @@ const RulesManager: React.FC = () => {
         <div>
             <div className="d-flex justify-content-between align-items-center mb-2">
                 <div>
-                    <h2 className="h5 mb-0">Rules (text)</h2>
+                    <h2 className="h5 mb-0">Rules</h2>
                     <div className="small text-muted">Manage textual rules that tag and categorize transactions</div>
                 </div>
                 <div className="d-flex gap-2">
+                    <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={async () => {
+                            // Export rules to a text file
+                            setExporting(true);
+                            try {
+                                const data = await api.get<string[]>("/rules/export");
+                                const text = (data || []).join("\n");
+                                const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = "rules.txt";
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                URL.revokeObjectURL(url);
+                            } catch (e: any) {
+                                setError(e?.message || "Failed to export rules");
+                            } finally {
+                                setExporting(false);
+                            }
+                        }}
+                        disabled={exporting}
+                    >
+                        {exporting ? "Exporting..." : "Export"}
+                    </button>
+                    <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => {
+                            // trigger hidden file input
+                            fileInputRef.current?.click();
+                        }}
+                        disabled={importing}
+                    >
+                        {importing ? "Importing..." : "Import"}
+                    </button>
+                    <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={async () => {
+                            // One-click: delete all rules without confirmation
+                            setDeletingAll(true);
+                            try {
+                                // collect ids
+                                const ids = rules.map((r) => r.id).filter((id): id is string => !!id);
+                                for (const id of ids) {
+                                    try {
+                                        await api.delete(`/rules/${id}`);
+                                    } catch (err) {
+                                        // continue deleting remaining rules, but notify user after
+                                        console.error("Failed to delete rule", id, err);
+                                    }
+                                }
+                                await load();
+                            } catch (e: any) {
+                                setError(e?.message || "Failed to delete all rules");
+                            } finally {
+                                setDeletingAll(false);
+                            }
+                        }}
+                        disabled={deletingAll}
+                    >
+                        {deletingAll ? "Deleting..." : "Delete All"}
+                    </button>
                     <button className="btn btn-sm btn-outline-secondary" onClick={reapplyAll} disabled={reapplying}>
                         {reapplying ? "Re-applying..." : "Re-apply all rules"}
                     </button>
@@ -162,15 +220,22 @@ const RulesManager: React.FC = () => {
                             <tr key={r.id || i}>
                                 <td>{i + 1}</td>
                                 <td>
-                                    <button
-                                        className={`btn btn-sm ${r.active ? "btn-success" : "btn-outline-secondary"}`}
-                                        onClick={() => toggleActive(i)}
-                                    >
-                                        {r.active ? "Active" : "Inactive"}
-                                    </button>
+                                    <div className="form-check form-switch">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            id={`ruleSwitch${i}`}
+                                            checked={r.active}
+                                            onChange={() => toggleActive(i)}
+                                            aria-label={r.active ? "Active" : "Inactive"}
+                                        />
+                                        <label className="visually-hidden" htmlFor={`ruleSwitch${i}`}>
+                                            {r.active ? "Active" : "Inactive"}
+                                        </label>
+                                    </div>
                                 </td>
                                 <td
-                                    className="font-monospace small"
+                                    className={`font-monospace small ${r.active ? "" : "text-muted"}`}
                                     style={{
                                         whiteSpace: "nowrap",
                                         maxWidth: "40rem",
@@ -222,7 +287,7 @@ const RulesManager: React.FC = () => {
                                 placeholder="merchant contains Coffee -> @coffee #caffeinated"
                             />
                         </div>
-                        <div className="form-check mb-3">
+                        <div className="form-check form-switch mb-3">
                             <input
                                 className="form-check-input"
                                 type="checkbox"
@@ -249,8 +314,38 @@ const RulesManager: React.FC = () => {
                     </div>
                 </div>
             )}
+            {/* Hidden file input used for importing rules as plain text (one rule per line) */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,text/plain"
+                style={{ display: "none" }}
+                onChange={async (e) => {
+                    const f = e.target.files && e.target.files[0];
+                    if (!f) return;
+                    setImporting(true);
+                    try {
+                        const text = await f.text();
+                        const lines = text
+                            .split(/\r?\n/)
+                            .map((l) => l.trim())
+                            .filter((l) => l.length > 0);
+                        if (lines.length === 0) {
+                            setError("No rules found in the file");
+                        } else {
+                            await api.post("/rules/import", lines);
+                            await load();
+                        }
+                    } catch (err: any) {
+                        setError(err?.message || "Failed to import rules");
+                    } finally {
+                        // reset input so same file can be re-selected
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                        setImporting(false);
+                    }
+                }}
+            />
         </div>
     );
 };
-
 export default RulesManager;

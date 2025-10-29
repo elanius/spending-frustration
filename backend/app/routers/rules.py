@@ -41,6 +41,21 @@ def create_rule(rule_in: RuleIn, user_id: str = Depends(get_user_id)):
     return RuleOut(id=inserted_id, rule=rule_in.rule, active=rule_in.active)
 
 
+@router.get("/export", response_model=list[str])
+def export_rules(user_id: str = Depends(get_user_id)):
+    rules = db.get_rules(user_id=user_id)
+    # return rules as text. Every rule on its own line
+    return [r.rule for r in rules]
+
+
+@router.post("/import", status_code=201)
+def import_rules(rules: list[str], user_id: str = Depends(get_user_id)):
+    for rule in rules:
+        parse_rule(rule)
+        db.add_rule(user_id, {"rule": rule, "active": True}, priority=0)
+    return {"message": "Rules imported"}
+
+
 @router.put("/{rule_id}", response_model=RuleOut)
 def update_rule(rule_id: str, update: RuleUpdate, user_id: str = Depends(get_user_id)):
     # validate fields
