@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import pigLogo from "../assets/pig-logo.png";
+import pigLogo from "../assets/pig-logo4.png";
 
 interface NavBarProps {
     onLogout?: () => void;

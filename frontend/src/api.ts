@@ -67,12 +67,34 @@ export const api = {
 export interface Transaction {
     id: string; // _id alias
     _id?: string; // in case backend returns _id
+    // ISO date string
     date: string;
     amount: number;
-    merchant: string;
-    category?: string | null;
-    tags?: string[];
+    // transaction type e.g. "card_payment", "transfer"
+    transaction_type?: string | null;
+    // asset and counterparty follow backend models: counterparty may contain merchant, bank or wallet
+    counterparty?: {
+        merchant?: { name: string } | null;
+        bank?: { account_name?: string | null; iban?: string | null; bic?: string | null } | null;
+        wallet?: { wallet_name?: string | null } | null;
+    } | null;
+    // human-friendly description/note
+    description?: string | null;
+    // some backends use `note` or `notes`
+    note?: string | null;
     notes?: string | null;
+    category?: string | null;
+    tags?: string[] | null;
+    // details object containing additional metadata
+    details?: {
+        message_for_recipient?: string | null;
+        transaction_note?: string | null;
+        balance?: number | null;
+        currency?: string | null;
+        operation_type?: string | null;
+        location?: string | null;
+        symbols?: Record<string, string> | null;
+    } | null;
 }
 
 export interface Condition {

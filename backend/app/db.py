@@ -98,6 +98,35 @@ class DB:
             return None
         return Transaction.model_validate(doc)
 
+    def get_categories(self, user: str) -> list[str]:
+        """Return distinct non-empty categories for a user."""
+        docs = self._transactions_collection.distinct("category", {"user_id": to_oid(user)})
+        # Filter out empty/null and ensure strings
+        cats: list[str] = []
+        for c in docs:
+            if c is None:
+                continue
+            s = str(c).strip()
+            if s:
+                cats.append(s)
+        return sorted(set(cats))
+
+    def get_tags(self, user: str) -> list[str]:
+        """Return distinct tags (flattened) for a user."""
+        # Use aggregation to unwind tags array and get distinct values in case of nested arrays
+        pipeline = [
+            {"$match": {"user_id": to_oid(user)}},
+            {"$unwind": {"path": "$tags", "preserveNullAndEmptyArrays": False}},
+            {"$group": {"_id": None, "tags": {"$addToSet": "$tags"}}},
+        ]
+        res = list(self._transactions_collection.aggregate(pipeline))
+        if not res:
+            return []
+        tags = res[0].get("tags", []) or []
+        # normalize to strings, strip and filter empties
+        normalized = [str(t).strip() for t in tags if t is not None and str(t).strip()]
+        return sorted(set(normalized))
+
     def insert_transactions(self, transactions: list[Transaction]) -> list[str]:
         docs = []
         for tx in transactions:

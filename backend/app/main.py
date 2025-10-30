@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, transactions, rules, actions
+from app.routers import categories, tags
 from app.db import DB
 
 DB().get_instance()  # Initialize DB singleton
@@ -53,6 +54,8 @@ app.include_router(transactions.router, prefix="/transactions", tags=["transacti
 app.include_router(rules.router, prefix="/rules", tags=["rules"])
 # app.include_router(upload.router, prefix="/upload-statement", tags=["upload"])
 app.include_router(actions.router, prefix="/actions", tags=["actions"])
+app.include_router(categories.router, prefix="/categories", tags=["categories"])
+app.include_router(tags.router, prefix="/tags", tags=["tags"])
 
 
 @app.get("/")

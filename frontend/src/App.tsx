@@ -4,6 +4,8 @@ import NavBar from "./components/NavBar";
 import Transactions from "./components/Transactions";
 import RulesManager from "./components/RulesManager";
 import Auth from "./components/Auth";
+import Categories from "./components/Categories";
+import Tags from "./components/Tags";
 import { Token } from "./api";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
@@ -14,19 +16,7 @@ const Dashboard: React.FC = () => (
     </div>
 );
 
-const Categories: React.FC = () => (
-    <div>
-        <h2 className="h5">Categories</h2>
-        <p className="text-muted">Categories editor will be added later.</p>
-    </div>
-);
-
-const TagsView: React.FC = () => (
-    <div>
-        <h2 className="h5">Tags</h2>
-        <p className="text-muted">Tag management will be added later.</p>
-    </div>
-);
+// Use dedicated components for categories and tags
 
 const AppInner: React.FC<{ token: string | null; onLogout: () => void }> = ({ token, onLogout }) => {
     return (
@@ -38,7 +28,7 @@ const AppInner: React.FC<{ token: string | null; onLogout: () => void }> = ({ to
                     <Route path="/transactions" element={<Transactions />} />
                     <Route path="/rules" element={<RulesManager />} />
                     <Route path="/categories" element={<Categories />} />
-                    <Route path="/tags" element={<TagsView />} />
+                    <Route path="/tags" element={<Tags />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
